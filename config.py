@@ -48,10 +48,10 @@ class BayesOptConfig:
 @dataclass
 class AgingEvoConfig:
     search_space: SearchSpace
-    population_size: int = 100
+    population_size: int = 30 #100
     sample_size: int = 25
     initial_population_size: Optional[int] = None  # if None, equal to population_size
-    rounds: int = 20 #2000
+    rounds: int = 50 #2000
     max_parallel_evaluations: Optional[int] = None
     checkpoint_dir: str = "artifacts"
 
