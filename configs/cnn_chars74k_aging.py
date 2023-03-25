@@ -16,7 +16,7 @@ def lr_schedule(epoch):
 
 
 training_config = TrainingConfig(
-    dataset=Chars74K("/datasets/chars74k", img_size=(48, 48)),
+    dataset=Chars74K("./datasets/chars74k", img_size=(48, 48)),
     epochs=60,
     batch_size=80,
     optimizer=lambda: tfa.optimizers.SGDW(learning_rate=0.01, momentum=0.9, weight_decay=0.0001),
@@ -29,7 +29,7 @@ search_config = AgingEvoConfig(
 )
 
 bound_config = BoundConfig(
-    error_bound=0.3,
+    error_bound=0.4,
     peak_mem_bound=10000,
     model_size_bound=20000,
     mac_bound=1000000

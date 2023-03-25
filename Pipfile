@@ -7,18 +7,19 @@ verify_ssl = true
 
 [packages]
 scikit-learn="*"
-tensorflow = "==2.3.0"
+tensorflow = "*"
 pillow = "*"
-tensorflow-addons = "==0.11.2"
+tensorflow-addons = "*"
 pydot = "*"
 tqdm = "*"
 matplotlib = "*"
 parameterized = "*"
-dragonfly-opt = "==0.1.5"
+dragonfly-opt = "*"
 cython = "*"
 POT = "*"
 ray = "*"
 spektral = "*"
+numpy = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "*"
