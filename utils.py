@@ -113,8 +113,8 @@ def quantised_accuracy(model: tf.keras.Model, dataset: Dataset,
         converter.target_spec = target_specs
     else:
         converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type = tf.uint8
-    converter.inference_output_type = tf.uint8
+    #converter.inference_input_type = tf.uint8
+    #converter.inference_output_type = tf.uint8
     model_bytes = converter.convert()
 
     if output_file is not None:
@@ -151,7 +151,8 @@ def quantised_accuracy(model: tf.keras.Model, dataset: Dataset,
 
     if num_eval_workers > 1:
         ray.init(ignore_reinit_error=True)
-        evaluate = ray.remote(num_cpus=1, num_return_vals=2)(evaluate)
+        evaluate = ray.remote(num_cpus=1, num_returns=2)(evaluate)
+        #evaluate = ray.remote(num_return_vals=2)(evaluate)
         bytes_handle = ray.put(model_bytes)
         dataset_handle = ray.put(dataset)
         tasks = [evaluate.remote(bytes_handle, dataset_handle, i) for i in range(num_eval_workers)]
