@@ -1,11 +1,12 @@
 import logging
 from typing import Optional
+import numpy as np
 
 import tensorflow as tf
 
 from config import TrainingConfig
 from pruning import DPFPruning
-from utils import debug_mode
+from utils import debug_mode, quantised_accuracy
 
 
 class ModelTrainer:
@@ -100,8 +101,42 @@ class ModelTrainer:
             .prefetch(tf.data.experimental.AUTOTUNE)
         _, test_acc = model.evaluate(test, verbose=0)
 
+        #Float16 quantization
+        #converter = tf.lite.TFLiteConverter.from_keras_model(model=model)
+        #converter.optimizations = [tf.lite.Optimize.DEFAULT]
+        #converter.target_spec.supported_types = [tf.float16]
+        #tflite_quant_model = converter.convert()
+        #Function for evaluating TF Lite Model over Test Images
+        #def evaluate_quant(interpreter: tf.lite.Interpreter):
+        #    test_q = dataset.test_dataset()
+        #    prediction= []
+        #    input_index = interpreter.get_input_details()[0]["index"]
+        #    output_index = interpreter.get_output_details()[0]["index"]
+        #    input_format = interpreter.get_output_details()[0]['dtype']
+        #    
+        #    for i, test_image in enumerate(test_q[0]):
+        #        test_image = np.expand_dims(test_image, axis=0).astype(input_format)
+        #        interpreter.set_tensor(input_index, test_image)
+        #    
+        #        # Run inference.
+        #        interpreter.invoke()
+        #        output = interpreter.tensor(output_index)
+        #        predicted_label = np.argmax(output()[0])
+        #        prediction.append(predicted_label)
+                
+        #    # Comparing prediction results with ground truth labels to calculate accuracy.
+        #    prediction = np.array(prediction)
+        #    accuracy = (prediction == test_q[1]).mean()
+        #    return accuracy
+
+        #quant_model_acc = evaluate_quant(interpreter)
+
+        quant_model_acc = quantised_accuracy(model = model, dataset=dataset, batch_size=batch_size)
+
+
         return {
             "val_error": 1.0 - max(log.history["val_accuracy"][check_logs_from_epoch:]),
             "test_error": 1.0 - test_acc,
-            "pruned_weights": pruning_cb.weights if pruning_cb else None
+            "pruned_weights": pruning_cb.weights if pruning_cb else None,
+            "quant_model_error": 1.0 - quant_model_acc
         }

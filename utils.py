@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 import ray
 import os
 
@@ -73,7 +74,7 @@ def copy_weight(source: tf.Tensor, destination: tf.Tensor):
 
 def quantised_accuracy(model: tf.keras.Model, dataset: Dataset,
                        batch_size: int, num_representative_batches=5,
-                       num_eval_workers=4, output_file=None):
+                       num_eval_workers=4, output_file=None, target_specs:Optional[tf.lite.TargetSpec]=None):
     """ Converts a Keras model into a quantised TF Lite model and reports its accuracy on the test
         set. Due to the slowness of the TF Lite interpreter, there's an option to parallelise
         evaluation on the test set using Ray.
@@ -108,7 +109,10 @@ def quantised_accuracy(model: tf.keras.Model, dataset: Dataset,
 
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.representative_dataset = representative_dataset_gen
-    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    if target_specs:
+        converter.target_spec = target_specs
+    else:
+        converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
     converter.inference_input_type = tf.uint8
     converter.inference_output_type = tf.uint8
     model_bytes = converter.convert()

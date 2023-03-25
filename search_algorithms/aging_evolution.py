@@ -25,6 +25,7 @@ class EvaluatedPoint:
     point: ArchitecturePoint
     val_error: float
     test_error: float
+    quant_error: float
     resource_features: List[Union[int, float]]
 
 
@@ -43,17 +44,18 @@ class GPUTrainer:
         arch = point.arch
         model = self.ss.to_keras_model(arch, data.input_shape, data.num_classes)
         results = self.trainer.train_and_eval(model, sparsity=point.sparsity)
-        val_error, test_error = results["val_error"], results["test_error"]
+        val_error, test_error, quant_error = results["val_error"], results["test_error"], results["quant_model_error"]
         rg = self.ss.to_resource_graph(arch, data.input_shape, data.num_classes,
                                        pruned_weights=results["pruned_weights"])
         unstructured_sparsity = self.trainer.config.pruning and \
                                 not self.trainer.config.pruning.structured
         resource_features = [peak_memory_usage(rg), model_size(rg, sparse=unstructured_sparsity),
                              inference_latency(rg, compute_weight=1, mem_access_weight=0)]
-        log.info(f"Training complete: val_error={val_error:.4f}, test_error={test_error:.4f}, "
+        log.info(f"Training complete: val_error={val_error:.4f}, test_error={test_error:.4f}, quant_model_error={quant_error:.4f} "
                  f"resource_features={resource_features}.")
         return EvaluatedPoint(point=point,
                               val_error=val_error, test_error=test_error,
+                              quant_error=quant_error,
                               resource_features=resource_features)
 
 
