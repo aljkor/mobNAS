@@ -32,5 +32,6 @@ bound_config = BoundConfig(
     error_bound=0.4,
     peak_mem_bound=10000,
     model_size_bound=20000,
-    mac_bound=1000000
+    mac_bound=1000000,
+    quantization_error_bound=0.4
 )

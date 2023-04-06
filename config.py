@@ -64,3 +64,4 @@ class BoundConfig:
     peak_mem_bound: Optional[int] = None
     model_size_bound: Optional[int] = None
     mac_bound: Optional[int] = None
+    quantization_error_bound: Optional[float] = None

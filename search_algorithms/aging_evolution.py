@@ -84,7 +84,9 @@ class AgingEvoSearch:
         self.constraint_bounds = [bound_config.error_bound,
                                   bound_config.peak_mem_bound,
                                   bound_config.model_size_bound,
-                                  bound_config.mac_bound]
+                                  bound_config.mac_bound,
+                                  bound_config.quantization_error_bound
+                                  ]
 
         self.history: List[EvaluatedPoint] = []
         self.population: List[EvaluatedPoint] = []
@@ -119,7 +121,7 @@ class AgingEvoSearch:
             return min((x - l) / (u - l), cap)
 
         def fitness(i: EvaluatedPoint):
-            features = [i.val_error] + i.resource_features
+            features = [i.val_error] + i.resource_features + [i.quant_error] 
             # All objectives must be non-negative and scaled to the same magnitude of
             # between 0 and 1. Values that exceed required bounds will therefore be mapped
             # to a factor > 1, and be hit by the optimiser first.
@@ -131,7 +133,7 @@ class AgingEvoSearch:
 
     def bounds_log(self, history_size=25):
         def to_feature_vector(i):
-            return [i.val_error] + i.resource_features
+            return [i.val_error] + i.resource_features + [i.quant_error] 
         within_bounds = \
             [all(o <= b
                  for o, b in zip(to_feature_vector(i), self.constraint_bounds)
