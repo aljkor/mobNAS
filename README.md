@@ -106,6 +106,9 @@ In the interest of storage, μNAS does not save final weights of discovered mode
 
 
 ## Tele garaza
+- eval `ssh-agent -s`
+- ssh-add -l
+- ssh-add ./ssh/<name of key>
 - pipenv shell
 - conda activate tf
 - pipenv run python3 driver.py configs/cnn_chars74k_aging.py --name "test"
