@@ -20,6 +20,8 @@ class Chars74K(Dataset):
         :param seed: Seed for the train/val/test split.
         """
         self.img_size = img_size
+        self.one_hot_labels = None
+        
 
         base_dir = Path(english_img_dir) / "English/Img/GoodImg/Bmp"
         if not base_dir.exists():
@@ -61,6 +63,7 @@ class Chars74K(Dataset):
 
         images = tf.stack(images)
         labels = tf.convert_to_tensor(labels)
+        self.one_hot_labels = tf.one_hot(indeces=labels, depth=self.num_classes)
         return images, labels
 
     def augment_func(self):

@@ -103,3 +103,9 @@ In the interest of storage, μNAS does not save final weights of discovered mode
    model prior to deploying.
 
 
+
+
+## Tele garaza
+- pipenv shell
+- conda activate tf
+- pipenv run python3 driver.py configs/cnn_chars74k_aging.py --name "test"
