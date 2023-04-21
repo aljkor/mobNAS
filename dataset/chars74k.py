@@ -63,8 +63,8 @@ class Chars74K(Dataset):
 
         images = tf.stack(images)
         labels = tf.convert_to_tensor(labels)
-        self.one_hot_labels = tf.one_hot(indeces=labels, depth=self.num_classes)
-        return images, labels
+        one_hot_labels = tf.one_hot(labels, self.num_classes)
+        return images, one_hot_labels
 
     def augment_func(self):
         def augment(x, y):

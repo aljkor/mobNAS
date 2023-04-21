@@ -6,14 +6,10 @@ import tensorflow as tf
 from config import TrainingConfig
 from pruning import DPFPruning
 from utils import debug_mode
-from .utils import large_margin
 
 
 def maximum_with_relu(a, b):
     return a + tf.nn.relu(b - a)
-
-def get_label(feature, label):
-    return label
 
 def large_margin(_sentinel=None,
     logits=None,
@@ -136,12 +132,11 @@ class ModelTrainer:
             accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="accuracy")
         #model.compile(optimizer=self.config.optimizer(),
         #              loss=loss, metrics=[accuracy])
-        train_labels = train.map(get_label)
-        one_hot_true_labels = tf.one_hot(indeces=train_labels, depth=self.dataset.num_classes)
+
         model.compile(optimizer=self.config.optimizer(), metrics=[accuracy],
                     loss=lambda y_true, y_pred: large_margin(
                         logits = y_pred,
-                        one_hot_labels=one_hot_true_labels,
+                        one_hot_labels=y_true,
                         layers=model.layers))
         
         # TODO: adjust metrics by class weight?
