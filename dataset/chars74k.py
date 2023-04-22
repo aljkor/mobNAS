@@ -45,6 +45,8 @@ class Chars74K(Dataset):
                                    random_state=seed, stratify=y_train_and_val)
 
         self.train_data = (X_train, y_train)
+        #iterator = self.train_data.make_one_shot_iterator()
+        #self.images, labels = iterator.get_next()
         self.valid_data = (X_val, y_val)
         self.test_data = (X_test, y_test)
 
@@ -88,8 +90,11 @@ class Chars74K(Dataset):
         return augment
 
     def train_dataset(self) -> tf.data.Dataset:
-        return tf.data.Dataset.from_tensor_slices(self.train_data)\
+        dataset = tf.data.Dataset.from_tensor_slices(self.train_data)\
             .map(self.augment_func(), num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        #iterator = dataset.make_one_shot_iterator()
+        #self.images, labels = iterator.get_next()
+        return dataset
 
     def validation_dataset(self) -> tf.data.Dataset:
         return tf.data.Dataset.from_tensor_slices(self.valid_data)
