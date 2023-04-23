@@ -20,7 +20,7 @@ def compute_x_ticks(x_min, x_max):
 
 def is_pareto_efficient(points):
     points = np.asarray(points)
-    is_efficient = np.ones(points.shape[0], dtype=np.bool)
+    is_efficient = np.ones(points.shape[0], dtype=bool)
     for i, c in enumerate(points):
         if is_efficient[i]:
             is_efficient[is_efficient] = np.any(points[is_efficient] < c, axis=1)
@@ -95,6 +95,7 @@ def output_csv(objectives):
 
 
 def load_search_state_file(search_state_file, filter_resources=None):
+    print(search_state_file)
     is_bo = "agingevosearch" not in search_state_file
     with open(search_state_file, "rb") as f:
         if is_bo:
@@ -209,11 +210,13 @@ def process(output_mode, search_state_file):
 
 
 def main():
+    print("aaaaaaaaaaaaaaaa")
     p = argparse.ArgumentParser()
     p.add_argument("output_mode", type=str, choices=["csv", "pareto_plot"])
     p.add_argument("search_state_file", type=str)
     args = p.parse_args()
-
+    print(args.output_mode, args.search_state_file)
+    print("bbbbb")
     process(args.output_mode, args.search_state_file)
 
 
@@ -280,12 +283,12 @@ def plot_latency_vs_mac(latency_file, take_n=1000, x_range=(0, 90), y_range=(0, 
 
 
 if __name__ == '__main__':
-    main()
+    #main()
     # plot_latency_vs_mac("artifacts/latency.csv", output_file="mcu_latency.pdf")
-    # plot_pareto_front("artifacts/cnn_mnist/no_ms_agingevosearch_state.pickle",
-    #                   x_range=(0.00, 0.04), y_range=(100, 3_000_000),
-    #                   title="μNAS on MNIST w/o model size constraint",
-    #                   output_file="mnist_no_ms.pdf")
+    plot_pareto_front("artifacts/cnn_chars74k/test3_agingevosearch_state.pickle",
+                      x_range=(0.00, 0.04), y_range=(100, 3_000_000),
+                      title="μNAS on Chars74k with 4 constraints constraint",
+                      output_file="test_visualise_pareto.pdf")
     # plot_pareto_front("artifacts/cnn_mnist/no_pmu_agingevosearch_state.pickle",
     #                   x_range=(0.00, 0.04), y_range=(100, 3_000_000),
     #                   title="μNAS on MNIST w/o mem. usage constraint",
