@@ -26,6 +26,8 @@ class EvaluatedPoint:
     val_error: float
     test_error: float
     quant_error: float
+    quant_error2: float
+    quant_error3: float
     resource_features: List[Union[int, float]]
 
 
@@ -44,18 +46,20 @@ class GPUTrainer:
         arch = point.arch
         model = self.ss.to_keras_model(arch, data.input_shape, data.num_classes)
         results = self.trainer.train_and_eval(model, sparsity=point.sparsity)
-        val_error, test_error, quant_error = results["val_error"], results["test_error"], results["quant_model_error"]
+        val_error, test_error, quant_error, quant_error2, quant_error3 = results["val_error"], results["test_error"], results["quant_model_error"], results["quant_model_error2"], results["quant_model_error3"]
         rg = self.ss.to_resource_graph(arch, data.input_shape, data.num_classes,
                                        pruned_weights=results["pruned_weights"])
         unstructured_sparsity = self.trainer.config.pruning and \
                                 not self.trainer.config.pruning.structured
         resource_features = [peak_memory_usage(rg), model_size(rg, sparse=unstructured_sparsity),
                              inference_latency(rg, compute_weight=1, mem_access_weight=0)]
-        log.info(f"Training complete: val_error={val_error:.4f}, test_error={test_error:.4f}, quant_model_error={quant_error:.4f} "
+        log.info(f"Training complete: val_error={val_error:.4f}, test_error={test_error:.4f}, quant_model_error_INT8={quant_error:.4f}, quant_model_error_INT16_INT8={quant_error2:.4f}, quant_model_error_FLOAT16={quant_error3:.4f} "
                  f"resource_features={resource_features}.")
         return EvaluatedPoint(point=point,
                               val_error=val_error, test_error=test_error,
                               quant_error=quant_error,
+                              quant_error2=quant_error2,
+                              quant_error3=quant_error3,
                               resource_features=resource_features)
 
 
@@ -85,7 +89,9 @@ class AgingEvoSearch:
                                   bound_config.peak_mem_bound,
                                   bound_config.model_size_bound,
                                   bound_config.mac_bound,
-                                  bound_config.quantization_error_bound
+                                  bound_config.quantization_error_bound,
+                                  bound_config.quantization_error_bound2,
+                                  bound_config.quantization_error_bound3
                                   ]
 
         self.history: List[EvaluatedPoint] = []
@@ -121,7 +127,7 @@ class AgingEvoSearch:
             return min((x - l) / (u - l), cap)
 
         def fitness(i: EvaluatedPoint):
-            features = [i.val_error] + i.resource_features + [i.quant_error] 
+            features = [i.val_error] + i.resource_features + [i.quant_error, i.quant_error2, i.quant_error3] 
             # All objectives must be non-negative and scaled to the same magnitude of
             # between 0 and 1. Values that exceed required bounds will therefore be mapped
             # to a factor > 1, and be hit by the optimiser first.
@@ -133,7 +139,7 @@ class AgingEvoSearch:
 
     def bounds_log(self, history_size=25):
         def to_feature_vector(i):
-            return [i.val_error] + i.resource_features + [i.quant_error] 
+            return [i.val_error] + i.resource_features + [i.quant_error, i.quant_error2, i.quant_error3] 
         within_bounds = \
             [all(o <= b
                  for o, b in zip(to_feature_vector(i), self.constraint_bounds)

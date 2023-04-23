@@ -48,7 +48,7 @@ class BayesOptConfig:
 @dataclass
 class AgingEvoConfig:
     search_space: SearchSpace
-    population_size: int = 30 #100
+    population_size: int = 100
     sample_size: int = 25
     initial_population_size: Optional[int] = None  # if None, equal to population_size
     rounds: int = 50 #2000
@@ -65,3 +65,5 @@ class BoundConfig:
     model_size_bound: Optional[int] = None
     mac_bound: Optional[int] = None
     quantization_error_bound: Optional[float] = None
+    quantization_error_bound2: Optional[float] = None
+    quantization_error_bound3: Optional[float] = None

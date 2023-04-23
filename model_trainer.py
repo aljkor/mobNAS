@@ -131,12 +131,18 @@ class ModelTrainer:
 
         #quant_model_acc = evaluate_quant(interpreter)
 
+        #INT8
         quant_model_acc = quantised_accuracy(model = model, dataset=dataset, batch_size=batch_size)
-
-
+        #16-bit activations with 8-bit weights
+        quant_model_acc2 = quantised_accuracy(model = model, dataset=dataset, batch_size=batch_size, target_specs_id=2)
+        #float16
+        quant_model_acc3 = quantised_accuracy(model = model, dataset=dataset, batch_size=batch_size, target_specs_id=1)
+        
         return {
             "val_error": 1.0 - max(log.history["val_accuracy"][check_logs_from_epoch:]),
             "test_error": 1.0 - test_acc,
             "pruned_weights": pruning_cb.weights if pruning_cb else None,
-            "quant_model_error": 1.0 - quant_model_acc
+            "quant_model_error": 1.0 - quant_model_acc,
+            "quant_model_error2": 1.0 - quant_model_acc2,
+            "quant_model_error3": 1.0 - quant_model_acc3
         }
