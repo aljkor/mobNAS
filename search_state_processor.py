@@ -126,7 +126,7 @@ def plot_pareto_front2(search_state_file, x_range=(0.0, 1.0), y_range=(0.0, 3e6)
         color = [(r, g, b, a) for a in alpha]
         for i in range(len(x[0])):
             xx = [x[0][i], x[1][i], x[2][i], x[3][i]]
-            ax.plot(xx, [0, 1, 2, 3], color=color[i])
+            ax.plot(xx, [0, 1, 2, 3], 'o',color=color[i])
 
     # scatter(error, macs, color=colors[0], label="MACs",
     #         alpha=(0.1 + 0.25 * is_efficient))
