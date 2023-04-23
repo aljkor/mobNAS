@@ -286,7 +286,7 @@ if __name__ == '__main__':
     #main()
     # plot_latency_vs_mac("artifacts/latency.csv", output_file="mcu_latency.pdf")
     plot_pareto_front("artifacts/cnn_chars74k/test3_agingevosearch_state.pickle",
-                      x_range=(0.00, 0.04), y_range=(100, 3_000_000),
+                      x_range=(0.00, 1.00), y_range=(1, 3_000_000),
                       title="μNAS on Chars74k with 4 constraints constraint",
                       output_file="test_visualise_pareto.pdf")
     # plot_pareto_front("artifacts/cnn_mnist/no_pmu_agingevosearch_state.pickle",
