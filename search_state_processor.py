@@ -126,7 +126,7 @@ def plot_pareto_front2(search_state_file, x_range=(0.0, 1.0), y_range=(0.0, 3e6)
         color = [(r, g, b, a) for a in alpha]
         for i in range(len(x[0])):
             xx = [x[0][i], x[1][i], x[2][i], x[3][i]]
-            ax.plot(xx, [0, 1, 2, 3], label=label, color=color[i])
+            ax.plot(xx, [0, 1, 2, 3], color=color[i])
 
     # scatter(error, macs, color=colors[0], label="MACs",
     #         alpha=(0.1 + 0.25 * is_efficient))
@@ -359,7 +359,7 @@ def plot_latency_vs_mac(latency_file, take_n=1000, x_range=(0, 90), y_range=(0, 
 if __name__ == '__main__':
     #main()
     plot_pareto_front2("artifacts/cnn_chars74k/test_agingevosearch_3_quant_2_agingevosearch_state.pickle",
-                      x_range=(0.00, 1.00), y_range=(0, 5),
+                      x_range=(0.00, 1.00), y_range=(0, 3),
                       title="μNAS on Chars74k with constraints and quantization",
                       output_file="test_visualise_pareto2.pdf")
     # plot_latency_vs_mac("artifacts/latency.csv", output_file="mcu_latency.pdf")
