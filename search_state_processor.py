@@ -20,7 +20,7 @@ def compute_x_ticks(x_min, x_max):
 
 def is_pareto_efficient(points):
     points = np.asarray(points)
-    is_efficient = np.ones(points.shape[0], dtype=np.bool)
+    is_efficient = np.ones(points.shape[0], dtype=bool)
     for i, c in enumerate(points):
         if is_efficient[i]:
             is_efficient[is_efficient] = np.any(points[is_efficient] < c, axis=1)
@@ -280,7 +280,11 @@ def plot_latency_vs_mac(latency_file, take_n=1000, x_range=(0, 90), y_range=(0, 
 
 
 if __name__ == '__main__':
-    main()
+    #main()
+    plot_pareto_front("artifacts/cnn_chars74k/test_agingevosearch_3_quant_2_agingevosearch_state.pickle",
+                      x_range=(0.00, 1.00), y_range=(1, 3_000_000),
+                      title="μNAS on Chars74k with constraints and quantization",
+                      output_file="test_visualise_pareto.pdf")
     # plot_latency_vs_mac("artifacts/latency.csv", output_file="mcu_latency.pdf")
     # plot_pareto_front("artifacts/cnn_mnist/no_ms_agingevosearch_state.pickle",
     #                   x_range=(0.00, 0.04), y_range=(100, 3_000_000),
