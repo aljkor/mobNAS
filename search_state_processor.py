@@ -87,6 +87,65 @@ def plot_pareto_front(search_state_file, x_range=(0.0, 1.0), y_range=(0.0, 3e6),
     else:
         plt.show()
 
+def plot_pareto_front2(search_state_file, x_range=(0.0, 1.0), y_range=(0.0, 3e6), title=None,
+                      output_file=None):
+    points = load_search_state_file2(search_state_file)
+    error = np.array([o[0] for o in points])
+    pmu = np.array([o[1] for o in points])
+    ms = np.array([o[2] for o in points])
+    macs = np.array([o[3] for o in points])
+    quant_error = np.array([o[4] for o in points])
+    quant_error2 = np.array([o[5] for o in points])
+    quant_error3 = np.array([o[6] for o in points])
+
+    is_efficient = is_pareto_efficient(points)
+
+    x_min, x_max = x_range
+    y_min, y_max = y_range
+    x_minor_ticks, x_major_ticks = compute_x_ticks(x_min, x_max)
+
+    plt.rcParams["font.family"] = "Arial"
+    fig = plt.figure(figsize=[3.8, 3.2], dpi=300)
+    ax = fig.add_subplot()
+
+    ax.set_xlim([x_min, x_max])
+    ax.set_ylim([y_min, y_max])
+    ax.set_xticks(x_minor_ticks, minor=True)
+    ax.set_xticks(x_major_ticks, minor=False)
+    ax.set_xlabel("Error rate")
+    ax.set_ylabel("Quant (0, int8, int16_8, float16)")
+    #ax.set_yscale("log")
+    #ax.set_title(title or "PMU, model size and MACs versus error rate")
+    ax.xaxis.grid(True, which='both', linewidth=0.5, linestyle=":")
+    ax.yaxis.grid(True, which='major', linewidth=0.5, linestyle=":")
+
+    colors = [f"C{i}" for i in range(3)]
+
+    def scatter(x, y, color, alpha, label):
+        r, g, b = to_rgb(color)
+        color = [(r, g, b, a) for a in alpha]
+        for i in range(len(x[0])):
+            xx = [x[0][i], x[1][i], x[2][i], x[3][i]]
+            ax.plot(xx, [0, 1, 2, 3], label=label, color=color[i])
+
+    # scatter(error, macs, color=colors[0], label="MACs",
+    #         alpha=(0.1 + 0.25 * is_efficient))
+    scatter([error, quant_error, quant_error2, quant_error3], pmu, color=colors[1], label="Degradation",
+            alpha=(0.1 + 0.25 * is_efficient))
+    # plt.hlines(np.mean(pmu), x_min, x_max, color=colors[1])
+    #scatter(error, ms, color=colors[2], label="Model size",
+    #        alpha=(0.1 + 0.25 * is_efficient))
+    # plt.hlines(np.mean(ms), x_min, x_max, color=colors[2])
+    ax.legend(loc="upper right")
+
+    #for i, c in enumerate(colors[1:]):
+    #    ax.legend_.legendHandles[i].set_facecolor(c)
+
+    plt.tight_layout()
+    if output_file:
+        fig.savefig(output_file, dpi=fig.dpi)
+    else:
+        plt.show()
 
 def output_csv(objectives):
     print("Error,PMU,MS,MACs")
@@ -112,6 +171,24 @@ def load_search_state_file(search_state_file, filter_resources=None):
 
     return points
 
+
+def load_search_state_file2(search_state_file, filter_resources=None):
+    is_bo = "agingevosearch" not in search_state_file
+    with open(search_state_file, "rb") as f:
+        if is_bo:
+            wrapped_nns = [nn[0] for nn in pickle.load(f)["points"]]
+        else:
+            wrapped_nns = pickle.load(f)
+
+    points = [(nn.test_error, nn.resource_features[0],
+               nn.resource_features[1], nn.resource_features[2], nn.quant_error, nn.quant_error2, nn.quant_error3)
+              for nn in wrapped_nns]
+
+    if filter_resources:
+        key = filter_resources
+        points = [(o[0], o[key]) for o in points]
+
+    return points
 
 def plot_accuracy_gain(search_state_file, x_range=(100, 2000), y_range=(0.8, 1.0),
                        ms_filter=64_000, output_file=None):
@@ -281,10 +358,10 @@ def plot_latency_vs_mac(latency_file, take_n=1000, x_range=(0, 90), y_range=(0, 
 
 if __name__ == '__main__':
     #main()
-    plot_pareto_front("artifacts/cnn_chars74k/test_agingevosearch_3_quant_2_agingevosearch_state.pickle",
-                      x_range=(0.00, 1.00), y_range=(1, 3_000_000),
+    plot_pareto_front2("artifacts/cnn_chars74k/test_agingevosearch_3_quant_2_agingevosearch_state.pickle",
+                      x_range=(0.00, 1.00), y_range=(0, 5),
                       title="μNAS on Chars74k with constraints and quantization",
-                      output_file="test_visualise_pareto.pdf")
+                      output_file="test_visualise_pareto2.pdf")
     # plot_latency_vs_mac("artifacts/latency.csv", output_file="mcu_latency.pdf")
     # plot_pareto_front("artifacts/cnn_mnist/no_ms_agingevosearch_state.pickle",
     #                   x_range=(0.00, 0.04), y_range=(100, 3_000_000),
