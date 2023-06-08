@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Tuple
 from .dataset import Dataset
 from .utils import with_probability, random_rotate, random_shift
+from tensorflow.keras.utils import to_categorical
 
 
 class Chars74K(Dataset):
@@ -20,7 +21,7 @@ class Chars74K(Dataset):
         :param seed: Seed for the train/val/test split.
         """
         self.img_size = img_size
-        self.one_hot_labels = None
+        #self.one_hot_labels = None
         
 
         base_dir = Path(english_img_dir) / "English/Img/GoodImg/Bmp"
@@ -43,12 +44,16 @@ class Chars74K(Dataset):
         X_train, X_val, y_train, y_val = \
             self._train_test_split(X_train_and_val, y_train_and_val, split_size=validation_split,
                                    random_state=seed, stratify=y_train_and_val)
-
-        self.train_data = (X_train, y_train)
-        #iterator = self.train_data.make_one_shot_iterator()
-        #self.images, labels = iterator.get_next()
-        self.valid_data = (X_val, y_val)
-        self.test_data = (X_test, y_test)
+        if binary:
+            self.train_data = (X_train, y_train)
+            #iterator = self.train_data.make_one_shot_iterator()
+            #self.images, labels = iterator.get_next()
+            self.valid_data = (X_val, y_val)
+            self.test_data = (X_test, y_test)
+        else:
+            self.train_data = (X_train, to_categorical(y_train))
+            self.valid_data = (X_val,to_categorical(y_val))
+            self.test_data = (X_test, to_categorical(y_test))
 
     def _load_data(self, filenames):
         images, labels = np.zeros((len(filenames),) + self.input_shape, dtype=np.float32), []
@@ -65,8 +70,8 @@ class Chars74K(Dataset):
 
         images = tf.stack(images)
         labels = tf.convert_to_tensor(labels)
-        one_hot_labels = tf.one_hot(labels, self.num_classes)
-        return images, one_hot_labels
+        #one_hot_labels = tf.one_hot(labels, self.num_classes)
+        return images, labels #one_hot_labels
 
     def augment_func(self):
         def augment(x, y):
