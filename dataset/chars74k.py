@@ -44,16 +44,19 @@ class Chars74K(Dataset):
         X_train, X_val, y_train, y_val = \
             self._train_test_split(X_train_and_val, y_train_and_val, split_size=validation_split,
                                    random_state=seed, stratify=y_train_and_val)
-        if binary:
-            self.train_data = (X_train, y_train)
-            #iterator = self.train_data.make_one_shot_iterator()
-            #self.images, labels = iterator.get_next()
-            self.valid_data = (X_val, y_val)
-            self.test_data = (X_test, y_test)
-        else:
-            self.train_data = (X_train, to_categorical(y_train))
-            self.valid_data = (X_val,to_categorical(y_val))
-            self.test_data = (X_test, to_categorical(y_test))
+        #if binary:
+        #    self.train_data = (X_train, y_train)
+        #    #iterator = self.train_data.make_one_shot_iterator()
+        #    #self.images, labels = iterator.get_next()
+        #    self.valid_data = (X_val, y_val)
+        #    self.test_data = (X_test, y_test)
+        #else:
+        #    self.train_data = (X_train, to_categorical(y_train, self.num_classes))
+        #    self.valid_data = (X_val,to_categorical(y_val, self.num_classes))
+        #    self.test_data = (X_test, to_categorical(y_test, self.num_classes))
+        self.train_data = (X_train, y_train)
+        self.valid_data = (X_val, y_val)
+        self.test_data = (X_test, y_test)
 
     def _load_data(self, filenames):
         images, labels = np.zeros((len(filenames),) + self.input_shape, dtype=np.float32), []

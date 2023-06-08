@@ -12,80 +12,6 @@ import numpy as np
 def maximum_with_relu(a, b):
     return a + tf.nn.relu(b - a)
 
-def large_margin(_sentinel=None,
-    logits=None,
-    one_hot_labels=None,
-    layers_list=None,
-    gamma=10000,
-    alpha_factor=2,
-    top_k=1,
-    #dist_norm=2,
-    epsilon=1e-8,
-    use_approximation=True,
-    worst_case_loss=True,
-    layers_weights=None,
-    loss_collection=tf.compat.v1.GraphKeys.LOSSES):
-
-    logits = tf.convert_to_tensor(logits)
-    one_hot_labels = tf.cast(one_hot_labels, logits.dtype)
-    new_layers = []
-    if layers_list != None:
-        for l in layers_list:
-            if isinstance(l,tf.keras.layers.Conv2D):
-                #print("yes")
-                new_layers.append(l)
-    layers_list = new_layers
-    layers_weights = [1.] * len(layers_list) if layers_weights is None else layers_weights
-
-    class_prob = tf.nn.softmax(logits)
-    correct_class_prob = tf.reduce_sum(class_prob * one_hot_labels, axis=1, keepdims=True)
-    other_class_prob = class_prob * (1. - one_hot_labels)
-    #print(class_prob)
-    norm_fn = lambda x: tf.norm(x, ord=2)
-
-    if top_k > 1:
-        # Pick the top k class probabilities other than the correct.
-        top_k_class_prob, _ = tf.nn.top_k(other_class_prob, k=top_k)
-    else:
-        top_k_class_prob = tf.reduce_max(other_class_prob, axis=1, keepdims=True)
-    
-    difference_prob = correct_class_prob - top_k_class_prob
-    #print("----------------aaaaa---------------------")
-    #print(difference_prob)
-    losses_list = []
-    for wt, layer in zip(layers_weights, layers_list):
-        difference_prob_grad = []
-        for i in range(top_k):
-            gradient = tf.gradients(difference_prob[:, i], layer)[0]
-            gradient = tf.reshape(gradient, shape=(-1,))
-            difference_prob_grad.append(gradient)
-        #difference_prob_grad = [
-        #    tf.reshape(tf.gradients(difference_prob[:, i], layer)[0], shape=(-1,))
-        #    for i in range(top_k)
-        #]
-        difference_prob_gradnorm = tf.concat([
-            tf.map_fn(norm_fn, difference_prob_grad[i])[:, tf.newaxis] / wt
-            for i in range(top_k)
-        ], axis=1)
-
-        if use_approximation:
-            difference_prob_gradnorm = tf.stop_gradient(difference_prob_gradnorm)
-        
-        distance_to_boundary = difference_prob / (difference_prob_gradnorm + epsilon)
-        if worst_case_loss:
-            distance_to_boundary = tf.reduce_min(distance_to_boundary, axis=1,keepdims=True)
-        distance_upper = gamma
-        distance_lower = gamma * (1 - alpha_factor)
-
-        loss_layer = maximum_with_relu(distance_to_boundary, distance_lower)
-        loss_layer = maximum_with_relu(0, distance_upper - loss_layer) - distance_upper
-        loss_layer = tf.reduce_sum(loss_layer, axis=1)
-        losses_list.append(tf.reduce_mean(loss_layer))
-    
-    loss = tf.reduce_mean(losses_list)
-    #tf.losses.add_loss(loss, loss_collection)
-    return loss
-
 class ModelTrainer:
     """Trains Keras models according to the specified config."""
     def __init__(self, training_config: TrainingConfig):
@@ -151,28 +77,9 @@ class ModelTrainer:
             #loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             loss = tf.keras.losses.CategoricalHinge() #one-hot encoding labels
             accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="accuracy")
+        
         model.compile(optimizer=self.config.optimizer(),
                       loss=loss, metrics=[accuracy])
-        #iterator = iter(train)
-        #x_batch, y_batch = iterator.get_next()
-        #tf.summary.image("images", x_batch)
-        #mdl_layers = [x_batch] + model.layers
-        #mdl_layers = []
-        #endpoints = model.layers
-        #print(endpoints)
-        #print("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
-        #mdl_layers = endpoints
-        #mdl_layers = list(filter(endpoints, lambda x: True if "conv2d/kernel" in x  else False))
-        #(imgs, _) = train
-        #mdl_layers = [imgs] + model.layers
-        #layer_weights = [layer.get_weights() for layer in model.layers]
-        #layer_weights = [np.prod(layer.get_shape().as_list()[1:]) for layer in mdl_layers] if np.isinf(2) else None
-        #model.compile(optimizer=self.config.optimizer(), metrics=[accuracy],
-        #            loss=lambda y_true, y_pred: large_margin(
-        #                logits = y_pred,
-        #                one_hot_labels=y_true,
-        #                layers_list=mdl_layers,
-	    #		layers_weights=layer_weights))
         
         # TODO: adjust metrics by class weight?
         class_weight = {k: v for k, v in enumerate(self.dataset.class_weight())} \
