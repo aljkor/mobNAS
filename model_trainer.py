@@ -144,33 +144,35 @@ class ModelTrainer:
             model.add_loss(teaching_loss, inputs=True)
 
         if self.dataset.num_classes == 2:
-            loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+            #loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+            loss = tf.keras.losses.Hinge() #labels should be from -1 to 1
             accuracy = tf.keras.metrics.BinaryAccuracy(name="accuracy")
         else:
-            loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            #loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            loss = tf.keras.losses.CategoricalHinge() #one-hot encoding labels
             accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="accuracy")
-        #model.compile(optimizer=self.config.optimizer(),
-        #              loss=loss, metrics=[accuracy])
+        model.compile(optimizer=self.config.optimizer(),
+                      loss=loss, metrics=[accuracy])
         #iterator = iter(train)
         #x_batch, y_batch = iterator.get_next()
         #tf.summary.image("images", x_batch)
         #mdl_layers = [x_batch] + model.layers
         #mdl_layers = []
-        endpoints = model.layers
+        #endpoints = model.layers
         #print(endpoints)
         #print("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
-        mdl_layers = endpoints
+        #mdl_layers = endpoints
         #mdl_layers = list(filter(endpoints, lambda x: True if "conv2d/kernel" in x  else False))
         #(imgs, _) = train
         #mdl_layers = [imgs] + model.layers
         #layer_weights = [layer.get_weights() for layer in model.layers]
-        layer_weights = [np.prod(layer.get_shape().as_list()[1:]) for layer in mdl_layers] if np.isinf(2) else None
-        model.compile(optimizer=self.config.optimizer(), metrics=[accuracy],
-                    loss=lambda y_true, y_pred: large_margin(
-                        logits = y_pred,
-                        one_hot_labels=y_true,
-                        layers_list=mdl_layers,
-			layers_weights=layer_weights))
+        #layer_weights = [np.prod(layer.get_shape().as_list()[1:]) for layer in mdl_layers] if np.isinf(2) else None
+        #model.compile(optimizer=self.config.optimizer(), metrics=[accuracy],
+        #            loss=lambda y_true, y_pred: large_margin(
+        #                logits = y_pred,
+        #                one_hot_labels=y_true,
+        #                layers_list=mdl_layers,
+	    #		layers_weights=layer_weights))
         
         # TODO: adjust metrics by class weight?
         class_weight = {k: v for k, v in enumerate(self.dataset.class_weight())} \
