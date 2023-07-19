@@ -70,16 +70,17 @@ class ModelTrainer:
             model.add_loss(teaching_loss, inputs=True)
 
         if self.dataset.num_classes == 2:
-            #loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+            loss2 = tf.keras.losses.BinaryCrossentropy(from_logits=True)
             loss = tf.keras.losses.Hinge() #labels should be from -1 to 1
             accuracy = tf.keras.metrics.BinaryAccuracy(name="accuracy")
         else:
-            #loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+            loss2 = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
             loss = tf.keras.losses.CategoricalHinge() #one-hot encoding labels
             accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="accuracy")
         
+        alpha = 0.2
         model.compile(optimizer=self.config.optimizer(),
-                      loss=loss, metrics=[accuracy])
+                      loss=[loss, loss2], loss_weights=[alpha,1-alpha], metrics=[accuracy])
         
         # TODO: adjust metrics by class weight?
         class_weight = {k: v for k, v in enumerate(self.dataset.class_weight())} \
